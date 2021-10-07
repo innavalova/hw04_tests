@@ -108,9 +108,15 @@ class PostViewTests(TestCase):
                 print(self.post_in_group.text)
                 post_author_0 = first_object.author.username
                 post_group_0 = first_object.group.title
-                self.assertEqual(post_text_0, self.post_in_group.text or self.post.text)
+                self.assertEqual(
+                    post_text_0,
+                    self.post_in_group.text or self.post.text
+                )
                 self.assertEqual(post_author_0, self.author.username)
-                self.assertEqual(post_group_0, self.group_1.title or self.group_2.title)
+                self.assertEqual(
+                    post_group_0,
+                    self.group_1.title or self.group_2.title
+                )
 
     def test_post_id_context(self):
         """Шаблон получает пост с корректным id."""
