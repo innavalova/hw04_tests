@@ -17,14 +17,14 @@ class PostViewTests(TestCase):
         # cls.user = User.objects.create_user(username='test_user')
         cls.groups = [
             Group.objects.create(
-                title='Первая группа',
+                title='Тестовая группа',
                 slug='first',
-                description='Описание первой группы',
+                description='Тестовая группа',
             ),
             Group.objects.create(
-                title='Вторая группа',
+                title='Тестовая группа',
                 slug='second',
-                description='Описание второй группы',
+                description='Тестовая группа',
             ),
         ]
         cls.group_1 = cls.groups[0]
@@ -103,8 +103,6 @@ class PostViewTests(TestCase):
                 response = self.authorized_author.get(reverse_name)
                 first_object = response.context['posts'][0]
                 post_text_0 = first_object.text
-                print(post_text_0)
-                print(self.post_in_group.text)
                 post_author_0 = first_object.author.username
                 post_group_0 = first_object.group.title
                 self.assertEqual(post_text_0, self.post_in_group.text)
