@@ -14,7 +14,6 @@ class PostViewTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.author = User.objects.create_user(username='test_author')
-        # cls.user = User.objects.create_user(username='test_user')
         cls.groups = [
             Group.objects.create(
                 title='Тестовая группа',
@@ -45,14 +44,8 @@ class PostViewTests(TestCase):
         cls.post = cls.posts[1]
 
     def setUp(self):
-        # неавторизованный клиент
-        # self.guest_client = Client()
-        # авторизованный клиент автор
         self.authorized_author = Client()
         self.authorized_author.force_login(self.author)
-        # авторизованный клиент
-        # self.authorized_user = Client()
-        # self.authorized_user.force_login(self.user)
 
     def test_correct_template(self):
         """URL-адреса используют правильные шаблоны."""

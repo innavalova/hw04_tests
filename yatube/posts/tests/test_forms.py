@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
 from ..models import Group, Post
@@ -24,6 +25,7 @@ class PostFormFormTests(TestCase):
         )
 
     def setUp(self):
+        self.guest_client = Client()
         self.authorized_author = Client()
         self.authorized_author.force_login(self.author)
 
@@ -31,7 +33,9 @@ class PostFormFormTests(TestCase):
         """Валидная форма создает запись в Post."""
         posts_count = Post.objects.count()
         form_data = {
-            'text': 'Тестовый пост',
+            'text': 'Новый пост',
+            'author': self.author,
+            'group': self.group.id,
         }
         response = self.authorized_author.post(
             reverse('posts:post_create'),
@@ -43,11 +47,10 @@ class PostFormFormTests(TestCase):
             reverse('posts:profile', args={self.author.username})
         )
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertTrue(
-            Post.objects.filter(
-                text='Тестовый пост',
-            ).exists()
-        )
+        post = get_object_or_404(Post, pk=Post.objects.count())
+        self.assertEqual(post.text, form_data['text'])
+        self.assertEqual(post.author, form_data['author'])
+        self.assertEqual(post.group.id, form_data['group'])
 
     def test_edit_post(self):
         """Валидная форма изменяет запись в Post."""
@@ -69,6 +72,26 @@ class PostFormFormTests(TestCase):
         self.assertEqual(post_id, self.post.pk)
         self.assertTrue(
             Post.objects.filter(
-                text='Измененный пост',
+                text=form_data['text'],
             ).exists()
+        )
+
+    def test_guest_cant_create_post(self):
+        posts_count = Post.objects.count()
+        form_data = {
+            'text': 'Пост гостя',
+        }
+        response = self.guest_client.post(
+            reverse('posts:post_create'),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(Post.objects.count(), posts_count)
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(
+            response,
+            reverse('users:login') + '?next=' + reverse('posts:post_create')
+        )
+        self.assertFalse(
+            Post.objects.filter(text=form_data['text'],).exists()
         )

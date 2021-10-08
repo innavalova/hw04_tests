@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
-from django.urls import reverse
 
 from http import HTTPStatus
 
@@ -41,24 +40,20 @@ class PostURLTests(TestCase):
         """Страницы доступны."""
         # открытые страницы
         open_urls_names = [
-            reverse('posts:index'),
-            reverse('posts:group_list', args={self.group.slug}),
-            reverse('posts:profile', args={self.author.username}),
-            reverse('posts:post_detail', args={self.post.pk}),
+            '/',
+            f'/group/{self.group.slug}/',
+            f'/profile/{self.author.username}/',
+            f'/posts/{self.post.pk}/',
         ]
-        for reverse_name in open_urls_names:
-            with self.subTest(reverse_name=reverse_name):
-                response = self.guest_client.get(reverse_name)
+        for address in open_urls_names:
+            with self.subTest(address=address):
+                response = self.guest_client.get(address)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
         # только авторизованному
-        response = self.authorized_user.get(
-            reverse('posts:post_create')
-        )
+        response = self.authorized_user.get('/create/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
         # только автору
-        response = self.authorized_author.get(
-            reverse('posts:post_edit', args={self.post.pk})
-        )
+        response = self.authorized_author.get(f'/posts/{self.post.pk}/edit/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_unexisting_page_404(self):
@@ -70,40 +65,40 @@ class PostURLTests(TestCase):
         """Страницы правильно перенаправляют."""
         # редирект неавторизованного
         urls_names = [
-            reverse('posts:post_create'),
-            reverse('posts:post_edit', args={self.post.pk}),
+            '/create/',
+            f'/posts/{self.post.pk}/edit/',
         ]
-        for reverse_name in urls_names:
-            with self.subTest(reverse_name=reverse_name):
-                response = self.guest_client.get(reverse_name, follow=True)
+        for address in urls_names:
+            with self.subTest(address=address):
+                response = self.guest_client.get(address, follow=True)
                 self.assertRedirects(
                     response, (
-                        reverse('users:login') + f'?next={reverse_name}'
+                        f'/auth/login/?next={address}'
                     )
                 )
         # редирект не автора
         response = self.authorized_user.get(
-            reverse('posts:post_edit', args={self.post.pk}), follow=True
+            f'/posts/{self.post.pk}/edit/', follow=True
         )
         self.assertRedirects(
             response, (
-                reverse('posts:post_detail', args={self.post.pk})
+                f'/posts/{self.post.pk}/'
             )
         )
 
     def test_correct_template(self):
         """URL-адреса используют правильные шаблоны."""
         url_templates_names = {
-            reverse('posts:index'): 'posts/index.html',
-            reverse('posts:profile', args={self.author.username}):
+            '/': 'posts/index.html',
+            f'/profile/{self.author.username}/':
                 'posts/profile.html',
-            reverse('posts:post_edit', args={self.post.pk}):
+            f'/posts/{self.post.pk}/edit/':
                 'posts/create_post.html',
-            reverse('posts:post_detail', args={self.post.pk}):
+            f'/posts/{self.post.pk}/':
                 'posts/post_detail.html',
-            reverse('posts:group_list', args={self.group.slug}):
+            f'/group/{self.group.slug}/':
                 'posts/group_list.html',
-            reverse('posts:post_create'): 'posts/create_post.html',
+            '/create/': 'posts/create_post.html',
         }
         for reverse_name, template in url_templates_names.items():
             with self.subTest(reverse_name=reverse_name):
