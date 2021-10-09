@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
-from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
 from ..models import Group, Post
@@ -47,7 +46,7 @@ class PostFormFormTests(TestCase):
             reverse('posts:profile', args={self.author.username})
         )
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        post = get_object_or_404(Post, pk=Post.objects.count())
+        post = Post.objects.first()
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.author, form_data['author'])
         self.assertEqual(post.group.id, form_data['group'])

@@ -72,12 +72,13 @@ class PostViewTests(TestCase):
             reverse('posts:index'): len(self.posts),
             reverse('posts:profile', args={self.author.username}):
                 self.author.posts.count(),
-            # группы при необходимости тоже можно циклом внутри перебрать
-            reverse('posts:group_list', args={self.group_1.slug}):
-                self.group_1.posts.count(),
-            reverse('posts:group_list', args={self.group_2.slug}):
-                self.group_2.posts.count(),
+            # урлы страниц групп сюда добавит цикл ниже
         }
+        for group in self.groups:
+            arg = group.slug
+            key = reverse('posts:group_list', args={arg})
+            value = group.posts.count()
+            urls_posts[key] = value
         for reverse_name, object in urls_posts.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_author.get(reverse_name)
